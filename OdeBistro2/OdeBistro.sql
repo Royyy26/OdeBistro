@@ -1,4 +1,6 @@
+DROP DATABASE IF EXISTS OdeBistro;
 CREATE DATABASE OdeBistro;
+USE OdeBistro;
 
 CREATE TABLE NamaMenu(
 KodeMenu VARCHAR(7) PRIMARY KEY,
@@ -6,13 +8,14 @@ NamaMenu VARCHAR(100),
 HargaMenu INT
 );
 
-CREATE TABLE Pesanan(`menupage`
+CREATE TABLE Pesanan(
 NomorAntrian VARCHAR(3),
 Meja INT
 );
 
 CREATE TABLE DetilPesanan(
-NomorAntrian VARCHAR(3) PRIMARY KEY,
+NomorAntrian VARCHAR(3),
+KodeDetilPesanan VARCHAR(10) PRIMARY KEY,
 KodeMenu VARCHAR(100),
 Quantity INT,
 Notes VARCHAR(255)
@@ -86,13 +89,13 @@ CREATE TABLE pembayaran (
   TotalHarga INT
   );
 
-INSERT  INTO member(no_telp_member,nama, poin) 
+INSERT  INTO member(no_telp_member,nama, poin_member) 
 VALUES 
 ('081234567891','Elroy', 80000),
 ('081234567892','Sherlina', 15000),
 ('081234567893','Leony', 18000),
 ('081234567894','Jesye', 57000),
-('081234567895','Jessica', 20000)
+('081234567895','Jessica', 20000)
 ;
 
 INSERT  INTO pembayaran(id_pembayaran,tipe_pembayaran,tgl_pembelian,deskripsi,no_telp_member,kasir) 
