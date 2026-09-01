@@ -220,7 +220,15 @@ public class OdeBistro extends javax.swing.JFrame implements ListSelectionListen
             return;
         }
 
-        try (Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/OdeBistro?useSSL=false", "root", "")) {
+        try {
+            Class.forName("com.mysql.cj.jdbc.Driver");
+        } catch (ClassNotFoundException ex) {
+            try {
+                Class.forName("com.mysql.jdbc.Driver");
+            } catch (ClassNotFoundException e) {}
+        }
+
+        try (Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/OdeBistro?useSSL=false&allowPublicKeyRetrieval=true", "root", "")) {
             String sql = "SELECT * FROM DataPegawai WHERE KodePegawai=? AND PasswordPegawai=?";
             try (PreparedStatement stm = con.prepareStatement(sql)) {
                 stm.setString(1, kodepegawai);
@@ -243,8 +251,9 @@ public class OdeBistro extends javax.swing.JFrame implements ListSelectionListen
                     }
                 }
             }
-        } catch (SQLException e) {
-            JOptionPane.showMessageDialog(this, "Terjadi kesalahan koneksi database: " + e.getMessage(), "Error Database", JOptionPane.ERROR_MESSAGE);
+        } catch (Exception e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(this, "Koneksi Database Error: " + e.getMessage(), "Error Database", JOptionPane.ERROR_MESSAGE);
         }
     }//GEN-LAST:event_buttonLoginActionPerformed
 
