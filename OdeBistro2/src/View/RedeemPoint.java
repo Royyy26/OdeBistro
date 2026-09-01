@@ -783,6 +783,34 @@ public class RedeemPoint extends javax.swing.JPanel {
 
         jButton2.setBackground(new java.awt.Color(153, 204, 255));
         jButton2.setText("Reedem");
+        jButton2.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                String memberName = jTextField4.getText().trim();
+                String pointsStr = jFormattedTextField1.getText().trim();
+                if (memberName.isEmpty() || pointsStr.isEmpty()) {
+                    JOptionPane.showMessageDialog(null, "Pilih/Cari Member terlebih dahulu!", "Peringatan", JOptionPane.WARNING_MESSAGE);
+                    return;
+                }
+                int currentPoints = Integer.parseInt(pointsStr);
+                if (currentPoints < 10000) {
+                    JOptionPane.showMessageDialog(null, "Poin tidak cukup untuk redeem voucher (Min. 10,000 Poin)!", "Peringatan", JOptionPane.WARNING_MESSAGE);
+                    return;
+                }
+                int newPoints = currentPoints - 10000;
+                try (Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/OdeBistro?useSSL=false", "root", "")) {
+                    String sql = "UPDATE member SET poin_member = ? WHERE nama = ?";
+                    try (PreparedStatement pst = con.prepareStatement(sql)) {
+                        pst.setInt(1, newPoints);
+                        pst.setString(2, memberName);
+                        pst.executeUpdate();
+                        jFormattedTextField1.setText(String.valueOf(newPoints));
+                        JOptionPane.showMessageDialog(null, "Voucher Diskon Rp 10.000 berhasil di-redeem!\nKode Voucher: odeBistro", "Sukses Redeem", JOptionPane.INFORMATION_MESSAGE);
+                    }
+                } catch (SQLException ex) {
+                    JOptionPane.showMessageDialog(null, "Gagal redeem poin: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                }
+            }
+        });
 
         javax.swing.GroupLayout jPanel4Layout = new javax.swing.GroupLayout(jPanel4);
         jPanel4.setLayout(jPanel4Layout);

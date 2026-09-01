@@ -347,31 +347,46 @@ public class PaymentMeja extends javax.swing.JPanel {
         }
 
         String metode = (String) cmbmetode.getSelectedItem();
-        String selectedTable = (String) cmbnomeja.getSelectedItem();
+        String selectedTableStr = (String) cmbnomeja.getSelectedItem();
+        int selectedTableNum = 1;
+        try {
+            selectedTableNum = Integer.parseInt(selectedTableStr.replaceAll("[^0-9]", ""));
+        } catch (Exception e) {
+            selectedTableNum = 1;
+        }
         int totalBayar = Integer.parseInt(totalText);
 
-        // Record payment to database
+        // Record payment to database & clear active customer session for this table
         try (Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/OdeBistro?useSSL=false", "root", "")) {
             String sqlPay = "INSERT INTO pembayaran(id_pembayaran, tipe_pembayaran, tgl_pembelian, deskripsi, kasir) VALUES (?, ?, CURDATE(), ?, ?)";
             try (PreparedStatement pst = con.prepareStatement(sqlPay)) {
                 int randomId = (int) (Math.random() * 9000) + 1000;
                 pst.setInt(1, randomId);
                 pst.setString(2, metode);
-                pst.setString(3, "Pembayaran " + selectedTable + " via " + metode);
+                pst.setString(3, "Pembayaran Meja " + selectedTableNum + " via " + metode);
                 pst.setString(4, "P042202");
                 pst.executeUpdate();
             }
-            // Clear menupage table after successful checkout
+
+            // Clear menupage active cart
             try (Statement stmt = con.createStatement()) {
                 stmt.executeUpdate("DELETE FROM menupage");
             }
+
+            // Clear customer table occupancy for this table
+            String sqlDelCustomer = "DELETE FROM customer WHERE Meja = ?";
+            try (PreparedStatement pstCust = con.prepareStatement(sqlDelCustomer)) {
+                pstCust.setInt(1, selectedTableNum);
+                pstCust.executeUpdate();
+            }
+
             JOptionPane.showMessageDialog(this, "===============================\n" +
                     "        ODE BISTRO INVOICE        \n" +
                     "===============================\n" +
-                    "Meja: " + selectedTable + "\n" +
+                    "Meja: " + selectedTableNum + "\n" +
                     "Metode: " + metode + "\n" +
                     "Total Pembayaran: Rp " + totalBayar + "\n" +
-                    "Status: LUNAS\n" +
+                    "Status: LUNAS (Meja Kosong Kembali)\n" +
                     "===============================\n" +
                     "Terima kasih atas kunjungan Anda!", "Invoice Pembayaran Sukses", JOptionPane.INFORMATION_MESSAGE);
 
