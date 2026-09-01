@@ -4,6 +4,9 @@
  */
 package View;
 
+import java.sql.*;
+import javax.swing.JOptionPane;
+
 /**
  *
  * @author sherl
@@ -15,6 +18,23 @@ public class RedeemPoint extends javax.swing.JPanel {
      */
     public RedeemPoint() {
         initComponents();
+    }
+
+    public void loadMemberPoints(String noTelp) {
+        try (Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/OdeBistro?useSSL=false", "root", "")) {
+            String sql = "SELECT nama, poin_member FROM member WHERE no_telp_member = ?";
+            try (PreparedStatement pst = con.prepareStatement(sql)) {
+                pst.setString(1, noTelp);
+                try (ResultSet rs = pst.executeQuery()) {
+                    if (rs.next()) {
+                        jTextField4.setText(rs.getString("nama"));
+                        jFormattedTextField1.setText(String.valueOf(rs.getInt("poin_member")));
+                    }
+                }
+            }
+        } catch (SQLException ex) {
+            // Handled gracefully
+        }
     }
 
     /**

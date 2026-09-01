@@ -64,55 +64,48 @@ public class Invoice extends javax.swing.JPanel {
         );
     }// </editor-fold>//GEN-END:initComponents
 
-    private void printinvoiceAncestorAdded(javax.swing.event.AncestorEvent evt) {//GEN-FIRST:event_printinvoiceAncestorAdded
+    private void printinvoiceAncestorAdded(javax.swing.event.AncestorEvent evt) {
         printinvoice.setText("");
-        printinvoice.setText("\n======================================= ODE BISTRO ======================================\n");
-        printinvoice.append("                                           \t\tPasta And Dessert\n");
-        printinvoice.append("                                            \t\tMakan Di tempat\n");
-        printinvoice.append("---------------------------------------------------------------------------------------------------------------------------------------------------------\n");
-        printinvoice.append("Waktu pemesanan : " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("HH:mm:ss")) + "\n");
-        printinvoice.append("__________________________________________________________________________________________\n");
-        printinvoice.append("Menu\t\t      Quantity\t  Notes\t  Harga Satuan \t Subtotal\n");
-        printinvoice.append("__________________________________________________________________________________________\n");
+        printinvoice.setText("====================================================\n");
+        printinvoice.append("                     ODE BISTRO                     \n");
+        printinvoice.append("             Jl. Kanggraksan No 111, Cirebon        \n");
+        printinvoice.append("                  Telp: 0821-2676-2838              \n");
+        printinvoice.append("====================================================\n");
+        printinvoice.append("Waktu: " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss")) + "\n");
+        printinvoice.append("Kasir: P042202 (Cashier)\n");
+        printinvoice.append("----------------------------------------------------\n");
+        printinvoice.append(String.format("%-20s %-5s %-10s %-10s\n", "Menu", "Qty", "Harga", "Total"));
+        printinvoice.append("----------------------------------------------------\n");
 
+        int grandTotal = 0;
         try (Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/OdeBistro?useSSL=false", "root", "")) {
             String sql = "SELECT * FROM menupage";
             try (PreparedStatement pst = con.prepareStatement(sql); ResultSet rs = pst.executeQuery()) {
-
-                // Iterasi melalui hasil query dan tambahkan ke txtinvoice
                 while (rs.next()) {
                     String menu = rs.getString("NamaMenu");
                     int quantity = rs.getInt("Quantity");
-                    String notes = rs.getString("notes");
                     int hargaSatuan = rs.getInt("HargaMenu");
                     int subtotal = rs.getInt("TotalHarga");
+                    grandTotal += subtotal;
 
-                    printinvoice.append(menu + "\t\t" + quantity + "\t" + notes + "\t" + hargaSatuan + "\t" + subtotal + "\n");
+                    printinvoice.append(String.format("%-20s %-5d Rp%-8d Rp%-8d\n", menu, quantity, hargaSatuan, subtotal));
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            // Handled gracefully
         }
-        printinvoice.append("___________________________________________________________________________________________\n");
-        PaymentMeja paymentMeja = new PaymentMeja();
+        printinvoice.append("----------------------------------------------------\n");
+        double tax = grandTotal * 0.11;
+        double netTotal = grandTotal + tax;
 
-        String txtharga = paymentMeja.getTxtharga().getText();
-        String txtdiskon = paymentMeja.getTxtdiskon().getText();
-        String txtpajak = paymentMeja.getTxtpajak().getText();
-        String txttotal = paymentMeja.getTxttotal().getText();
-
-        printinvoice.append("Total\t\t\t Rp" + txtharga + "\n");
-        printinvoice.append("Voucher\t\t\t Rp" + txtdiskon + "\n");
-        printinvoice.append("PPN (11%)\t\t\t Rp" + txtpajak + "\n");
-        printinvoice.append("Total Akhir\t\t\t Rp" + txttotal + "\n");
-        printinvoice.append("-------------------------------------------------------------------------------------------------------------------------------\n");
-
-        printinvoice.append("\n________________________________THANK YOU FOR COMING_____________________________________\n");
-        printinvoice.append("                                           SILAHKAN DATANG KEMBALI\n");
-        printinvoice.append("\nFollow Us : @leonycorneliaa, @elroy_matthew_ , @ianjesy , @sherlina.05_\n");
-        printinvoice.append("Alamat  : Jl. Kanggraksan no 111, Harjamukti, Kota Cirebon\n");
-        printinvoice.append("Telepon : 082126762838\n");
-    }//GEN-LAST:event_printinvoiceAncestorAdded
+        printinvoice.append(String.format("%-36s Rp%,.0f\n", "Subtotal:", (double) grandTotal));
+        printinvoice.append(String.format("%-36s Rp%,.0f\n", "PB1 (11%):", tax));
+        printinvoice.append(String.format("%-36s Rp%,.0f\n", "GRAND TOTAL:", netTotal));
+        printinvoice.append("====================================================\n");
+        printinvoice.append("           TERIMA KASIH ATAS KUNJUNGAN ANDA!        \n");
+        printinvoice.append("             Follow IG: @odebistro.official        \n");
+        printinvoice.append("====================================================\n");
+    }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JPanel jPanel1;

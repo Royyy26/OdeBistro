@@ -115,38 +115,35 @@ public class Member extends javax.swing.JPanel {
         );
     }// </editor-fold>//GEN-END:initComponents
 
-    private void buttoncreateActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttoncreateActionPerformed
-        String namaMember = inputnamamember.getText();
-        String noTelp = inputnotelp.getText();
+    private void buttoncreateActionPerformed(java.awt.event.ActionEvent evt) {
+        String namaMember = inputnamamember.getText().trim();
+        String noTelp = inputnotelp.getText().trim();
 
         if (namaMember.isEmpty() || noTelp.isEmpty()) {
-            JOptionPane.showMessageDialog(null, "Nama dan nomor telepon tidak boleh kosong", "Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Nama dan nomor telepon tidak boleh kosong!", "Peringatan", JOptionPane.WARNING_MESSAGE);
             return;
         }
 
-        try {
-            Class.forName("com.mysql.jdbc.Driver");
-            try (Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/OdeBistro?useSSL=false", "root", "")) {
-                String sql = "INSERT INTO member (no_telp_member, nama, poin) VALUES (?, ?, ?)";
-                try (PreparedStatement stmt = con.prepareStatement(sql)) {
-                    stmt.setString(1, noTelp);
-                    stmt.setString(2, namaMember);
-                    stmt.setInt(3, 0); 
-                    int rowsInserted = stmt.executeUpdate();
-                    if (rowsInserted > 0) {
-                        JOptionPane.showMessageDialog(this, "Member berhasil ditambahkan", "Success", JOptionPane.PLAIN_MESSAGE);
-                        inputnamamember.setText("");
-                        inputnotelp.setText("");
-                    } else {
-                        JOptionPane.showMessageDialog(this, "Gagal menambahkan member", "Error", JOptionPane.ERROR_MESSAGE);
-                    }
+        try (Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/OdeBistro?useSSL=false", "root", "")) {
+            String sql = "INSERT INTO member (no_telp_member, nama, poin_member) VALUES (?, ?, ?)";
+            try (PreparedStatement stmt = con.prepareStatement(sql)) {
+                stmt.setString(1, noTelp);
+                stmt.setString(2, namaMember);
+                stmt.setInt(3, 0); 
+                int rowsInserted = stmt.executeUpdate();
+                if (rowsInserted > 0) {
+                    JOptionPane.showMessageDialog(this, "Member '" + namaMember + "' berhasil ditambahkan!", "Sukses", JOptionPane.INFORMATION_MESSAGE);
+                    inputnamamember.setText("");
+                    inputnotelp.setText("");
+                } else {
+                    JOptionPane.showMessageDialog(this, "Gagal menambahkan member", "Error", JOptionPane.ERROR_MESSAGE);
                 }
             }
-        } catch (ClassNotFoundException | SQLException e) {
-            JOptionPane.showMessageDialog(this, "Terjadi kesalahan: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Terjadi kesalahan database: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
             Logger.getLogger(Member.class.getName()).log(Level.SEVERE, null, e);
         }
-    }//GEN-LAST:event_buttoncreateActionPerformed
+    }
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables

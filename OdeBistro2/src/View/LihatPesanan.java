@@ -1,5 +1,9 @@
 package View;
 
+import java.sql.*;
+import javax.swing.JOptionPane;
+import javax.swing.table.DefaultTableModel;
+
 /**
  *
  * @author sherl
@@ -11,6 +15,30 @@ public class LihatPesanan extends javax.swing.JPanel {
      */
     public LihatPesanan() {
         initComponents();
+        loadKitchenOrdersFromDatabase();
+    }
+
+    public void loadKitchenOrdersFromDatabase() {
+        DefaultTableModel model = new DefaultTableModel(new String[]{"Nomor Antrian", "Meja", "Menu", "Qty", "Notes"}, 0);
+        try (Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/OdeBistro?useSSL=false", "root", "")) {
+            String sql = "SELECT d.NomorAntrian, p.Meja, m.NamaMenu, d.Quantity, d.Notes " +
+                         "FROM DetilPesanan d " +
+                         "LEFT JOIN Pesanan p ON d.NomorAntrian = p.NomorAntrian " +
+                         "LEFT JOIN NamaMenu m ON d.KodeMenu = m.KodeMenu";
+            try (Statement stmt = con.createStatement(); ResultSet rs = stmt.executeQuery(sql)) {
+                while (rs.next()) {
+                    String antrian = rs.getString("NomorAntrian");
+                    int meja = rs.getInt("Meja");
+                    String menu = rs.getString("NamaMenu");
+                    int qty = rs.getInt("Quantity");
+                    String notes = rs.getString("Notes");
+                    model.addRow(new Object[]{antrian, meja, menu != null ? menu : rs.getString("NomorAntrian"), qty, notes});
+                }
+            }
+        } catch (SQLException ex) {
+            // Handled gracefully if DB not connected
+        }
+        jTable1.setModel(model);
     }
 
     /**

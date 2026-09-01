@@ -339,10 +339,53 @@ public class PaymentMeja extends javax.swing.JPanel {
         );
     }// </editor-fold>//GEN-END:initComponents
 
-    private void btninvoiceActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btninvoiceActionPerformed
-        JOptionPane.showMessageDialog(this, "Silahkan menuju pada Menu Item untuk melihat Invoice");
-        this.setVisible(false);
-    }//GEN-LAST:event_btninvoiceActionPerformed
+    private void btninvoiceActionPerformed(java.awt.event.ActionEvent evt) {
+        String totalText = txttotal.getText().trim();
+        if (totalText.isEmpty() || totalText.equals("0")) {
+            JOptionPane.showMessageDialog(this, "Tidak ada tagihan pembayaran aktif!", "Peringatan", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        String metode = (String) cmbmetode.getSelectedItem();
+        String selectedTable = (String) cmbnomeja.getSelectedItem();
+        int totalBayar = Integer.parseInt(totalText);
+
+        // Record payment to database
+        try (Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/OdeBistro?useSSL=false", "root", "")) {
+            String sqlPay = "INSERT INTO pembayaran(id_pembayaran, tipe_pembayaran, tgl_pembelian, deskripsi, kasir) VALUES (?, ?, CURDATE(), ?, ?)";
+            try (PreparedStatement pst = con.prepareStatement(sqlPay)) {
+                int randomId = (int) (Math.random() * 9000) + 1000;
+                pst.setInt(1, randomId);
+                pst.setString(2, metode);
+                pst.setString(3, "Pembayaran " + selectedTable + " via " + metode);
+                pst.setString(4, "P042202");
+                pst.executeUpdate();
+            }
+            // Clear menupage table after successful checkout
+            try (Statement stmt = con.createStatement()) {
+                stmt.executeUpdate("DELETE FROM menupage");
+            }
+            JOptionPane.showMessageDialog(this, "===============================\n" +
+                    "        ODE BISTRO INVOICE        \n" +
+                    "===============================\n" +
+                    "Meja: " + selectedTable + "\n" +
+                    "Metode: " + metode + "\n" +
+                    "Total Pembayaran: Rp " + totalBayar + "\n" +
+                    "Status: LUNAS\n" +
+                    "===============================\n" +
+                    "Terima kasih atas kunjungan Anda!", "Invoice Pembayaran Sukses", JOptionPane.INFORMATION_MESSAGE);
+
+            // Reset fields
+            txtharga.setText("0");
+            txtpajak.setText("0");
+            txtdiskon.setText("0");
+            txttotal.setText("0");
+            txtmasukankode.setText("");
+            
+        } catch (SQLException ex) {
+            JOptionPane.showMessageDialog(this, "Gagal memproses pembayaran: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
 
     private void btnloginmemberActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnloginmemberActionPerformed
         String phoneNumber = txtphone.getText();

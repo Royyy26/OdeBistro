@@ -1,7 +1,5 @@
 package View;
 
-import com.mysql.jdbc.Connection;
-import com.mysql.jdbc.PreparedStatement;
 import java.awt.CardLayout;
 import java.awt.Color;
 import javax.swing.JOptionPane;
@@ -33,6 +31,31 @@ public class DataMeja extends javax.swing.JPanel {
 
         menuPage = new MenuPage();
         mainPanel.add(menuPage, "menu");
+        refreshTableStatusFromDatabase();
+    }
+
+    public void refreshTableStatusFromDatabase() {
+        // Reset all tables to default green (Available)
+        for (int i = 0; i < tables.length; i++) {
+            if (tables[i] != null) {
+                tables[i].setBackground(new Color(220, 245, 220));
+                tables[i].setForeground(new Color(30, 100, 30));
+            }
+        }
+        try (Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/OdeBistro?useSSL=false", "root", "")) {
+            String sql = "SELECT DISTINCT Meja FROM customer";
+            try (Statement stmt = con.createStatement(); ResultSet rs = stmt.executeQuery(sql)) {
+                while (rs.next()) {
+                    int mejaNum = rs.getInt("Meja");
+                    if (mejaNum >= 1 && mejaNum <= 12) {
+                        tables[mejaNum - 1].setBackground(new Color(255, 210, 210));
+                        tables[mejaNum - 1].setForeground(new Color(180, 40, 40));
+                    }
+                }
+            }
+        } catch (SQLException ex) {
+            // Silently handle if table empty or DB connecting
+        }
     }
 
     private void initTables() {
@@ -386,44 +409,42 @@ public class DataMeja extends javax.swing.JPanel {
         saveToDatabase(selectedTable + 1, selectedServer);
     }//GEN-LAST:event_btninputActionPerformed
     private void saveToDatabase(int meja, String namaPegawai) {
-        try (Connection con = (Connection) DriverManager.getConnection("jdbc:mysql://localhost:3306/OdeBistro", "root", "")) {
+        try (Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/OdeBistro?useSSL=false", "root", "")) {
             String sql = "INSERT INTO customer (Meja, NamaPegawai) VALUES (?, ?)";
-            try (PreparedStatement stmt = (PreparedStatement) con.prepareStatement(sql)) {
+            try (PreparedStatement stmt = con.prepareStatement(sql)) {
                 stmt.setInt(1, meja);
                 stmt.setString(2, namaPegawai);
                 stmt.executeUpdate();
-                JOptionPane.showMessageDialog(this, "Data berhasil disimpan", "Success", JOptionPane.PLAIN_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Pelanggan berhasil didaftarkan ke Table " + meja, "Sukses", JOptionPane.INFORMATION_MESSAGE);
+                refreshTableStatusFromDatabase();
             }
         } catch (SQLException ex) {
             JOptionPane.showMessageDialog(this, "Terjadi kesalahan: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
-    private void cmbmejaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cmbmejaActionPerformed
+    private void cmbmejaActionPerformed(java.awt.event.ActionEvent evt) {
         // TODO add your handling code here:
-    }//GEN-LAST:event_cmbmejaActionPerformed
+    }
 
-    private void btnChangeMejaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnChangeMejaActionPerformed
-        int selectedTable = cmbmejaAwal.getSelectedIndex(); // Basis 0
-        int MejaBaru = cmbmejaBaru.getSelectedIndex(); // Basis 0
+    private void btnChangeMejaActionPerformed(java.awt.event.ActionEvent evt) {
+        int selectedTable = cmbmejaAwal.getSelectedIndex(); 
+        int MejaBaru = cmbmejaBaru.getSelectedIndex(); 
 
-        if (deleteFromDatabase(selectedTable + 1)) { // Basis 1 untuk database
-            updateTableStatus(selectedTable, Color.WHITE); // Basis 0 untuk tampilan
-            updateTableStatus(MejaBaru, Color.RED); // Basis 0 untuk tampilan
-        } else {
-
+        if (deleteFromDatabase(selectedTable + 1)) { 
+            saveToDatabase(MejaBaru + 1, "Server");
+            refreshTableStatusFromDatabase();
         }
-    }//GEN-LAST:event_btnChangeMejaActionPerformed
+    }
     private boolean deleteFromDatabase(int meja) {
-        try (Connection con = (Connection) DriverManager.getConnection("jdbc:mysql://localhost:3306/OdeBistro", "root", "")) {
+        try (Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/OdeBistro?useSSL=false", "root", "")) {
             String sql = "DELETE FROM customer WHERE Meja = ?";
-            try (PreparedStatement stmt = (PreparedStatement) con.prepareStatement(sql)) {
+            try (PreparedStatement stmt = con.prepareStatement(sql)) {
                 stmt.setInt(1, meja);
                 int rowsDeleted = stmt.executeUpdate();
                 if (rowsDeleted > 0) {
-                    JOptionPane.showMessageDialog(this, "Data berhasil dihapus", "Success", JOptionPane.PLAIN_MESSAGE);
                     return true;
                 } else {
-                    JOptionPane.showMessageDialog(this, "Tidak ada data yang dihapus", "Error", JOptionPane.ERROR_MESSAGE);
+                    JOptionPane.showMessageDialog(this, "Meja " + meja + " kosong / tidak terisi customer", "Informasi", JOptionPane.WARNING_MESSAGE);
                     return false;
                 }
             }
@@ -432,7 +453,7 @@ public class DataMeja extends javax.swing.JPanel {
             return false;
         }
     }
-    private void cmbmejaAwalActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cmbmejaAwalActionPerformed
+    private void cmbmejaAwalActionPerformed(java.awt.event.ActionEvent evt) {
         // TODO add your handling code here:
     }//GEN-LAST:event_cmbmejaAwalActionPerformed
 

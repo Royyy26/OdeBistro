@@ -212,15 +212,15 @@ public class OdeBistro extends javax.swing.JFrame implements ListSelectionListen
     }//GEN-LAST:event_HomeActionPerformed
 
     private void buttonLoginActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonLoginActionPerformed
-        try {
-            Class.forName("com.mysql.jdbc.Driver");
-        } catch (ClassNotFoundException ex) {
-            ex.printStackTrace();
-        }
-        try (Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/odebistro?useSSL=false", "root", "")) {
-            String kodepegawai = inputKodePegawai.getText();
-            String passwordpegawai = inputPassword.getText();
+        String kodepegawai = inputKodePegawai.getText().trim();
+        String passwordpegawai = new String(inputPassword.getPassword()).trim();
 
+        if (kodepegawai.isEmpty() || passwordpegawai.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Silakan masukkan Kode Pegawai dan Password!", "Peringatan", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        try (Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/OdeBistro?useSSL=false", "root", "")) {
             String sql = "SELECT * FROM DataPegawai WHERE KodePegawai=? AND PasswordPegawai=?";
             try (PreparedStatement stm = con.prepareStatement(sql)) {
                 stm.setString(1, kodepegawai);
@@ -229,7 +229,7 @@ public class OdeBistro extends javax.swing.JFrame implements ListSelectionListen
                     if (rs.next()) {
                         String posisiPegawai = rs.getString("PosisiPegawai");
                         String namaPegawai = rs.getString("NamaPegawai");
-                        JOptionPane.showMessageDialog(this, "Login successful", "Login", JOptionPane.PLAIN_MESSAGE);
+                        JOptionPane.showMessageDialog(this, "Selamat datang, " + namaPegawai + " (" + posisiPegawai + ")!", "Login Berhasil", JOptionPane.INFORMATION_MESSAGE);
                         inputKodePegawai.setEnabled(false);
                         inputPassword.setEnabled(false);
                         buttonLogin.setEnabled(false);
@@ -237,16 +237,16 @@ public class OdeBistro extends javax.swing.JFrame implements ListSelectionListen
                         addMenuToPage(posisiPegawai, namaPegawai);
                         LoginPanel.setVisible(false);
                     } else {
-                        JOptionPane.showMessageDialog(null, "Login failed", "Login", JOptionPane.PLAIN_MESSAGE);
+                        JOptionPane.showMessageDialog(this, "Kode Pegawai atau Password salah!", "Login Gagal", JOptionPane.ERROR_MESSAGE);
                         inputKodePegawai.setText("");
                         inputPassword.setText("");
                     }
                 }
             }
         } catch (SQLException e) {
-            JOptionPane.showMessageDialog(this, "Terjadi kesalahan: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Terjadi kesalahan koneksi database: " + e.getMessage(), "Error Database", JOptionPane.ERROR_MESSAGE);
         }
-    }
+    }//GEN-LAST:event_buttonLoginActionPerformed
 
     private void addMenuToPage(String posisiPegawai, String namaPegawai) {
         UserName.setText(namaPegawai);

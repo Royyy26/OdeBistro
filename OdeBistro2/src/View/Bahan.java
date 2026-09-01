@@ -193,50 +193,39 @@ public class Bahan extends javax.swing.JPanel {
         }
     }//GEN-LAST:event_cmbkodeActionPerformed
 
-    private void btnsaveActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnsaveActionPerformed
-        // TODO add your handling code here:
+    private void btnsaveActionPerformed(java.awt.event.ActionEvent evt) {
         if (cmbkode.getSelectedItem() == null) {
-            JOptionPane.showMessageDialog(this, "Kode Menu is required!", "Warning Message", JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Kode Menu harus dipilih!", "Peringatan", JOptionPane.WARNING_MESSAGE);
         } else if (txtjumlah.getText().trim().isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Jumlah Stok is required!", "Warning Message", JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Jumlah Stok harus diisi!", "Peringatan", JOptionPane.WARNING_MESSAGE);
         } else if (cmbstocker.getSelectedItem() == null) {
-            JOptionPane.showMessageDialog(this, "Stocker is required!", "Warning Message", JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Stocker harus dipilih!", "Peringatan", JOptionPane.WARNING_MESSAGE);
         } else {
-            try {
-                // Membuat koneksi ke database
-                Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/OdeBistro?useSSL=false", "root", "");
+            String kodeMenu = cmbkode.getSelectedItem().toString();
+            String jumlahStr = txtjumlah.getText().trim();
+            String stockerName = cmbstocker.getSelectedItem().toString();
 
-                // Menyusun kueri SQL
-                String sql = "INSERT INTO Restock (KodeMenu, NamaMenu, NamaPegawai, jumlahstok) VALUES (?, ?, ?, ?)";
+            try (Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/OdeBistro?useSSL=false", "root", "")) {
+                String sql = "INSERT INTO Restock (KodeMenu, jumlah, tgl_restock, stocker) VALUES (?, ?, CURDATE(), ?)";
+                try (PreparedStatement stmt = con.prepareStatement(sql)) {
+                    stmt.setString(1, kodeMenu);
+                    stmt.setInt(2, Integer.parseInt(jumlahStr));
+                    stmt.setString(3, stockerName);
+                    stmt.executeUpdate();
 
-                // Membuat prepared statement
-                PreparedStatement stmt = con.prepareStatement(sql);
+                    tableModel.addRow(new Object[]{kodeMenu, stockerName, jumlahStr});
+                    TableStok.setModel(tableModel);
 
-                // Mengatur parameter pada prepared statement
-                stmt.setString(1, cmbkode.getSelectedItem().toString());
-                stmt.setString(2, txtjumlah.getText());
-                stmt.setString(3, cmbstocker.getSelectedItem().toString());
-
-                // Mengeksekusi kueri SQL
-                stmt.executeUpdate();
-
-                // Menutup statement dan koneksi
-                stmt.close();
-                con.close();
-
-                // Menambahkan data ke tabel
-                tableModel.addRow(new Object[]{cmbkode.getSelectedItem(), txtjumlah.getText(), cmbstocker.getSelectedItem()});
-                TableStok.setModel(tableModel);
-
-                // Mengosongkan inputan
-                cmbkode.setSelectedItem(null);
-                txtjumlah.setText("");
-                cmbstocker.setSelectedIndex(0); 
+                    JOptionPane.showMessageDialog(this, "Stok berhasil ditambahkan!", "Sukses", JOptionPane.INFORMATION_MESSAGE);
+                    cmbkode.setSelectedItem(null);
+                    txtjumlah.setText("");
+                    cmbstocker.setSelectedIndex(0); 
+                }
             } catch (SQLException ex) {
-                JOptionPane.showMessageDialog(this, "Error: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Error Database: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
             }
         }
-    }//GEN-LAST:event_btnsaveActionPerformed
+    }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JTable TableStok;
